@@ -1,0 +1,18 @@
+## Directorios de compilación y salida
+[Bb]in/
+[Oo]bj/
+out/
+
+## Configuraciones locales
+.vs/
+*.user
+*.userosscache
+*.sln.doccache
+
+## Archivos de caché y herramientas de .NET
+project.lock.json
+project.assets.json
+*.nuget.g.props
+*.nuget.g.targets
+
+.DS_Store
