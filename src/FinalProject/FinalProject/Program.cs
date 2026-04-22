@@ -3,6 +3,10 @@ using System.Diagnostics;
 
 class Program
 {
+    static bool solutionFound = false;
+    static int[,] solutionBoard = new int[9, 9];
+    static object lockObj = new object();
+
     static void Main()
     {
         int[,] board = {
@@ -33,6 +37,35 @@ class Program
         {
             Console.WriteLine("No se encontró solución.");
         }
+        // RESET variables
+        solutionFound = false;
+        solutionBoard = new int[9, 9];
+
+        int[,] board2 = {
+            {5,3,0,0,7,0,0,0,0},
+            {6,0,0,1,9,5,0,0,0},
+            {0,9,8,0,0,0,0,6,0},
+            {8,0,0,0,6,0,0,0,3},
+            {4,0,0,8,0,3,0,0,1},
+            {7,0,0,0,2,0,0,0,6},
+            {0,6,0,0,0,0,2,8,0},
+            {0,0,0,4,1,9,0,0,5},
+            {0,0,0,0,8,0,0,7,9}
+        };
+
+        Stopwatch sw2 = Stopwatch.StartNew();
+
+        if (SolveParallel(board2))
+        {
+            sw2.Stop();
+            Console.WriteLine("\nSolución paralela encontrada:");
+            PrintBoard(solutionBoard);
+            Console.WriteLine($"\nTiempo paralelo: {sw2.ElapsedMilliseconds} ms");
+        }
+
+        // Calcular SPEEDUP
+        double speedup = (double)sw.ElapsedMilliseconds / sw2.ElapsedMilliseconds;
+        Console.WriteLine($"Speedup: {speedup:F2}x");
     }
 
     static bool Solve(int[,] board)
@@ -61,7 +94,52 @@ class Program
         }
         return true;
     }
+    static bool SolveParallel(int[,] board)
+    {
+        (int row, int col) = FindEmpty(board);
 
+        if (row == -1)
+            return true;
+
+        var tasks = new List<Task>();
+
+        for (int num = 1; num <= 9; num++)
+        {
+            if (IsValid(board, row, col, num))
+            {
+                int[,] newBoard = (int[,])board.Clone();
+                newBoard[row, col] = num;
+
+                tasks.Add(Task.Run(() =>
+                {
+                    if (!solutionFound && Solve(newBoard))
+                    {
+                        lock (lockObj)
+                        {
+                            if (!solutionFound)
+                            {
+                                solutionBoard = newBoard;
+                                solutionFound = true;
+                            }
+                        }
+                    }
+                }));
+            }
+        }
+
+        Task.WaitAll(tasks.ToArray());
+
+        return solutionFound;
+    }
+    static (int, int) FindEmpty(int[,] board)
+    {
+        for (int i = 0; i < 9; i++)
+            for (int j = 0; j < 9; j++)
+                if (board[i, j] == 0)
+                    return (i, j);
+
+        return (-1, -1);
+    }
     static bool IsValid(int[,] board, int row, int col, int num)
     {
         for (int i = 0; i < 9; i++)
