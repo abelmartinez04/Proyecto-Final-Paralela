@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -9,7 +13,9 @@ class Program
 
     static void Main()
     {
-        int[,] board = {
+        Directory.CreateDirectory("metrics");
+
+        int[,] sudokuBasico = {
             {5,3,0,0,7,0,0,0,0},
             {6,0,0,1,9,5,0,0,0},
             {0,9,8,0,0,0,0,6,0},
@@ -21,53 +27,90 @@ class Program
             {0,0,0,0,8,0,0,7,9}
         };
 
-        Console.WriteLine("Sudoku original:");
-        PrintBoard(board);
+        int[,] sudokuMedio = {
+            {0,0,0,6,0,0,4,0,0},
+            {7,0,0,0,0,3,6,0,0},
+            {0,0,0,0,9,1,0,8,0},
+            {0,0,0,0,0,0,0,0,0},
+            {0,5,0,1,8,0,0,0,3},
+            {0,0,0,3,0,6,0,4,5},
+            {0,4,0,2,0,0,0,6,0},
+            {9,0,3,0,0,0,0,0,0},
+            {0,2,0,0,0,0,1,0,0}
+        };
 
-        Stopwatch sw = Stopwatch.StartNew();
+        int[,] sudokuDificil = {
+            {0,0,0,0,0,0,0,1,2},
+            {0,0,0,0,0,0,0,3,0},
+            {0,0,1,0,9,5,0,0,0},
+            {0,0,0,0,0,0,0,0,0},
+            {0,0,0,5,0,8,0,0,0},
+            {0,0,0,0,0,0,0,0,0},
+            {0,0,0,6,7,0,2,0,0},
+            {0,3,0,0,0,0,0,0,0},
+            {1,2,0,0,0,0,0,0,0}
+        };
 
-        if (Solve(board))
-        {
-            sw.Stop();
-            Console.WriteLine("\nSolución encontrada:");
-            PrintBoard(board);
-            Console.WriteLine($"\nTiempo secuencial: {sw.ElapsedMilliseconds} ms");
-        }
-        else
-        {
-            Console.WriteLine("No se encontró solución.");
-        }
-        // RESET variables
+        RunTest(sudokuBasico, "Sudoku Básico");
+        RunTest(sudokuMedio, "Sudoku Medio");
+        RunTest(sudokuDificil, "Sudoku Difícil");
+    }
+
+    static void RunTest(int[,] original, string nombreCaso)
+    {
+        int[,] board1 = (int[,])original.Clone();
+        int[,] board2 = (int[,])original.Clone();
+
         solutionFound = false;
         solutionBoard = new int[9, 9];
 
-        int[,] board2 = {
-            {5,3,0,0,7,0,0,0,0},
-            {6,0,0,1,9,5,0,0,0},
-            {0,9,8,0,0,0,0,6,0},
-            {8,0,0,0,6,0,0,0,3},
-            {4,0,0,8,0,3,0,0,1},
-            {7,0,0,0,2,0,0,0,6},
-            {0,6,0,0,0,0,2,8,0},
-            {0,0,0,4,1,9,0,0,5},
-            {0,0,0,0,8,0,0,7,9}
-        };
+        Console.WriteLine($"\n===== {nombreCaso} =====");
+        Console.WriteLine("Sudoku original:");
+        PrintBoard(original);
 
+        // Secuencial
+        Stopwatch sw = Stopwatch.StartNew();
+        Solve(board1);
+        sw.Stop();
+
+        Console.WriteLine("\nSolución secuencial:");
+        PrintBoard(board1);
+        Console.WriteLine($"Tiempo secuencial: {sw.ElapsedMilliseconds} ms");
+
+        // Paralelo
         Stopwatch sw2 = Stopwatch.StartNew();
+        SolveParallel(board2);
+        sw2.Stop();
 
-        if (SolveParallel(board2))
-        {
-            sw2.Stop();
-            Console.WriteLine("\nSolución paralela encontrada:");
-            PrintBoard(solutionBoard);
-            Console.WriteLine($"\nTiempo paralelo: {sw2.ElapsedMilliseconds} ms");
-        }
+        Console.WriteLine("\nSolución paralela:");
+        PrintBoard(solutionBoard);
+        Console.WriteLine($"Tiempo paralelo: {sw2.ElapsedMilliseconds} ms");
 
-        // Calcular SPEEDUP
-        double speedup = (double)sw.ElapsedMilliseconds / sw2.ElapsedMilliseconds;
+        double speedup = sw2.ElapsedMilliseconds > 0
+            ? (double)sw.ElapsedMilliseconds / sw2.ElapsedMilliseconds
+            : 0;
+
         Console.WriteLine($"Speedup: {speedup:F2}x");
+
+        // Guardar resultados
+        string result = $@"
+Caso: {nombreCaso}
+Secuencial: {sw.ElapsedMilliseconds} ms
+Paralelo: {sw2.ElapsedMilliseconds} ms
+Speedup: {speedup:F2}x
+-----------------------------------";
+
+        string basePath = AppDomain.CurrentDomain.BaseDirectory;
+        string metricsDir = Path.GetFullPath(
+            Path.Combine(basePath, @"..\..\..\..\metrics")
+        );
+
+        Directory.CreateDirectory(metricsDir);
+        string metricsPath = Path.Combine(metricsDir, "resultados.txt");
+        File.AppendAllText(metricsPath, result);
     }
 
+    // ---------------- SECUENCIAL ----------------
     static bool Solve(int[,] board)
     {
         for (int row = 0; row < 9; row++)
@@ -94,6 +137,8 @@ class Program
         }
         return true;
     }
+
+    // ---------------- PARALELO ----------------
     static bool SolveParallel(int[,] board)
     {
         (int row, int col) = FindEmpty(board);
@@ -102,6 +147,7 @@ class Program
             return true;
 
         var tasks = new List<Task>();
+        SemaphoreSlim semaphore = new SemaphoreSlim(Environment.ProcessorCount);
 
         for (int num = 1; num <= 9; num++)
         {
@@ -110,18 +156,27 @@ class Program
                 int[,] newBoard = (int[,])board.Clone();
                 newBoard[row, col] = num;
 
-                tasks.Add(Task.Run(() =>
+                tasks.Add(Task.Run(async () =>
                 {
-                    if (!solutionFound && Solve(newBoard))
+                    await semaphore.WaitAsync();
+
+                    try
                     {
-                        lock (lockObj)
+                        if (!solutionFound && Solve(newBoard))
                         {
-                            if (!solutionFound)
+                            lock (lockObj)
                             {
-                                solutionBoard = newBoard;
-                                solutionFound = true;
+                                if (!solutionFound)
+                                {
+                                    solutionBoard = newBoard;
+                                    solutionFound = true;
+                                }
                             }
                         }
+                    }
+                    finally
+                    {
+                        semaphore.Release();
                     }
                 }));
             }
@@ -131,6 +186,8 @@ class Program
 
         return solutionFound;
     }
+
+    // ---------------- UTILIDADES ----------------
     static (int, int) FindEmpty(int[,] board)
     {
         for (int i = 0; i < 9; i++)
@@ -140,6 +197,7 @@ class Program
 
         return (-1, -1);
     }
+
     static bool IsValid(int[,] board, int row, int col, int num)
     {
         for (int i = 0; i < 9; i++)
@@ -165,7 +223,6 @@ class Program
         {
             for (int j = 0; j < 9; j++)
                 Console.Write(board[i, j] + " ");
-
             Console.WriteLine();
         }
     }
