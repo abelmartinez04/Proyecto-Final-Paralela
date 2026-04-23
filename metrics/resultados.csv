@@ -1,0 +1,4 @@
+Caso,Secuencial(ms),Paralelo(ms),Speedup
+Sudoku Fácil,4.5600,7.2967,0.62
+Sudoku Medio,697.3627,357.0434,1.95
+Sudoku Difícil,0.1378,2.2739,0.06

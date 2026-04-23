@@ -1,0 +1,6 @@
+Task 41 probando 8 en (0,0)
+Task 39 encontró solución
+Task 39 probando 5 en (0,0)
+Task 33 probando 1 en (0,0)
+Task 37 probando 3 en (0,0)
+Task 35 probando 2 en (0,0)

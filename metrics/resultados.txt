@@ -1,0 +1,16 @@
+
+Caso: Sudoku Fácil
+Secuencial: 4.5600 ms
+Paralelo: 7.2967 ms
+Speedup: 0.62x
+-----------------------------------
+Caso: Sudoku Medio
+Secuencial: 697.3627 ms
+Paralelo: 357.0434 ms
+Speedup: 1.95x
+-----------------------------------
+Caso: Sudoku Difícil
+Secuencial: 0.1378 ms
+Paralelo: 2.2739 ms
+Speedup: 0.06x
+-----------------------------------
