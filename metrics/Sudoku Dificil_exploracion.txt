@@ -1,0 +1,8 @@
+Task 50 probando 7 en (0,0)
+Task 48 probando 6 en (0,0)
+Task 54 probando 9 en (0,0)
+Task 44 probando 4 en (0,0)
+Task 46 probando 5 en (0,0)
+Task 52 probando 8 en (0,0)
+Task 42 encontró solución
+Task 42 probando 3 en (0,0)

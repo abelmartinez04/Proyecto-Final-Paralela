@@ -2,3 +2,9 @@ Caso,Secuencial(ms),Paralelo(ms),Speedup
 Sudoku Fácil,4.5600,7.2967,0.62
 Sudoku Medio,697.3627,357.0434,1.95
 Sudoku Difícil,0.1378,2.2739,0.06
+Sudoku Facil,4.4141,7.4591,0.59
+Sudoku Medio,470.1271,296.4606,1.59
+Sudoku Dificil,0.1180,1.2139,0.10
+Sudoku Facil,2.4296,5.6922,0.43
+Sudoku Medio,522.7359,305.8817,1.71
+Sudoku Dificil,0.1311,0.9837,0.13

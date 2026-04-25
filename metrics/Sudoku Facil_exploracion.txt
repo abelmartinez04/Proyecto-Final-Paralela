@@ -1,0 +1,4 @@
+Task 30 encontró solución
+Task 30 probando 4 en (0,2)
+Task 26 probando 1 en (0,2)
+Task 28 probando 2 en (0,2)
