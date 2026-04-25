@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 public class SolverParallel
 {
     private static bool solutionFound;
-    private static int[,] solutionBoard;
+    private static int[,]? solutionBoard;
     private static object lockObj = new object();
 
     public static int[,] Solve(int[,] board)

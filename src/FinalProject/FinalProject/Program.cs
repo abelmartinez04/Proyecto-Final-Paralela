@@ -42,9 +42,9 @@ class Program
             {1,2,0,0,0,0,0,0,0}
         };
 
-        RunTest(sudokuFacil, "Sudoku Fácil");
+        RunTest(sudokuFacil, "Sudoku Facil");
         RunTest(sudokuMedio, "Sudoku Medio");
-        RunTest(sudokuDificil, "Sudoku Difícil");
+        RunTest(sudokuDificil, "Sudoku Dificil");
     }
 
     static void RunTest(int[,] original, string nombreCaso)
